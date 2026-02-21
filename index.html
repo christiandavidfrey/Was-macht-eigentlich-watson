@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Was macht eigentlich watson.ch?</title>
+  <style>
+    :root{
+      --bg:#111111;
+      --panel:#151515;
+      --text:#f2f2f2;
+      --muted:#bdbdbd;
+      --hair:rgba(255,255,255,.12);
+      --max: 980px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.55;
+    }
+    a{color:inherit}
+    .wrap{max-width:var(--max); margin:0 auto; padding:28px 18px 56px;}
+    header{
+      padding:10px 0 18px;
+      border-bottom:1px solid var(--hair);
+      margin-bottom:22px;
+    }
+    .kicker{
+      color:var(--muted);
+      font-size:13px;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+    h1{
+      margin:.25rem 0 .35rem;
+      font-size:42px;
+      line-height:1.08;
+      letter-spacing:-.02em;
+    }
+    .meta{
+      color:var(--muted);
+      font-size:14px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .lead{
+      font-size:18px;
+      color:var(--text);
+      margin:18px 0 26px;
+    }
+    .section-title{
+      font-size:20px;
+      margin:26px 0 10px;
+      letter-spacing:-.01em;
+    }
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--hair);
+      border-radius:14px;
+      border: none;
+      padding:12px;
+      margin:12px 0 18px;
+    }
+    .embed{
+  width:100%;
+  border:0;
+  border-radius:0px;
+  background:#0e0e0e;
+  height:auto;      /* wichtig */
+  min-height:520px; /* fallback */
+}
+    .caption{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:10px;
+    }
+    .divider{
+      height:1px;
+      background:var(--hair);
+      margin:26px 0;
+    }
+    footer{
+      color:var(--muted);
+      font-size:13px;
+      border-top:1px solid var(--hair);
+      margin-top:34px;
+      padding-top:16px;
+    }
+    @media (max-width:700px){
+      h1{font-size:32px}
+      .embed{height:460px}
+    }
+
+    /* --- Full-width embed --- */
+    .fullwidth{
+      width:100vw;
+      margin-left:50%;
+      transform:translateX(-50%);
+      background:#111111;
+    }
+    .fullwidth-embed{
+      width:80%;
+      height:85vh;
+      border:0;
+      display:block;
+      margin:0 auto;
+      opacity:0;
+      transition:opacity 0.4s ease;
+    }
+    .fullwidth-embed.loaded{ opacity:1; }
+
+
+
+    /* Standard (grosse Screens) */
+.fullwidth-embed{
+  width:80%;
+  height:85vh;
+  border:0;
+  display:block;
+  margin:0 auto;
+  opacity:0;
+  transition:opacity 0.4s ease;
+}
+
+/* Zwischen 1200px und 1500px → 100% Breite */
+@media (max-width:1500px) and (min-width:1201px){
+  .fullwidth-embed{
+    width:100%;
+  }
+}
+
+    /* Mobile blocking overlay */
+    #mobile-block{ display:none; }
+    @media (max-width: 900px){
+      #mobile-block{
+        display:flex;
+        position:fixed;
+        inset:0;
+        background:#111111;
+        color:#ffffff;
+        z-index:9999;
+        align-items:center;
+        justify-content:center;
+        padding:24px;
+      }
+      #mobile-block .mobile-card{
+        max-width:520px;
+        border:1px solid rgba(255,255,255,.14);
+        border-radius:14px;
+        padding:20px;
+        background:#151515;
+      }
+      #mobile-block h2{ margin:0 0 10px 0; font-size:20px; }
+      #mobile-block p{ margin:0; color:#bbbbbb; line-height:1.5; }
+      body > .wrap{ display:none !important; }
+    }
+
+    /* --- Plot Interaction Layer --- */
+    .viz-wrap{
+      position:relative;
+      width:100%;
+    }
+
+    /* Overlay ist standardmässig AUS, damit Hover/Tooltips im Plot funktionieren */
+.scroll-catcher{
+  position:absolute;
+  inset:0;
+  background:transparent;
+  cursor:grab;
+  pointer-events:none;   /* <- wichtig: Hover geht durch zum iframe */
+}
+
+/* Nur während Drag aktivieren (optional) */
+.viz-wrap.is-dragging .scroll-catcher{
+  pointer-events:auto;   /* fängt Drag-Start ab */
+  cursor:grabbing;
+}
+
+    /* Hinweis unten rechts */
+    .viz-hint{
+      position:absolute;
+      right:24px;
+      bottom:16px;
+      font-size:12px;
+      color:#BBBBBB;
+      background:rgba(25,25,25,0.7);
+      border:1px solid rgba(255,255,255,0.12);
+      padding:6px 10px;
+      border-radius:999px;
+      user-select:none;
+      pointer-events:none;
+    }
+
+
+    .wrap p {
+  text-align: justify;
+}
+
+
+
+
+/* --- Methoden-Infobox --- */
+.methods{
+  margin-top: 22px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(40,40,40,0.55);  /* dunkelgrau transparent */
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #e9e9e9;
+  backdrop-filter: blur(6px);       /* optional: Glass-Effekt */
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.methods h3{
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #cfcfcf;
+}
+
+.methods ul{
+  margin: 0;
+  padding-left: 18px;
+  color: #d8d8d8;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.methods li{ margin: 4px 0; }
+
+.methods .note{
+  margin-top: 10px;
+  color: #bdbdbd;
+  font-size: 12px;
+}
+
+
+
+/* --- Punktewolke Desktop-Hinweis --- */
+.plot-too-small{
+  display:none;
+  width:100%;
+  padding:40px 20px;
+  text-align:center;
+  background:#151515;
+  border-top:1px solid var(--hair);
+  border-bottom:1px solid var(--hair);
+  color:#cccccc;
+}
+
+.plot-too-small h3{
+  margin:0 0 10px 0;
+  font-size:20px;
+}
+
+.plot-too-small p{
+  margin:0;
+  font-size:14px;
+  color:#aaaaaa;
+}
+
+/* Ab 1200px oder kleiner: Plot ausblenden */
+@media (max-width: 1200px){
+  #topics-viz{
+    display:none;
+  }
+  .plot-too-small{
+    display:block;
+  }
+}
+
+.plot-too-small p{
+  margin:0;
+  font-size:14px;
+  color:#aaaaaa;
+  text-align:center;   /* <- das ergänzt du */
+}
+
+
+footer{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+footer .social a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.06);
+  transition:all 0.2s ease;
+}
+
+footer .social a:hover{
+  background:rgba(255,255,255,0.15);
+  transform:translateY(-2px);
+}
+
+
+.embed,
+.fullwidth-embed{
+  opacity:0;
+  transition:opacity 0.6s ease;
+}
+
+.embed.loaded,
+.fullwidth-embed.loaded{
+  opacity:1;
+}
+  </style>
+</head>
+
+<body>
+  <div id="mobile-block">
+    <div class="mobile-card">
+      <h2>Diese Seite ist noch nicht für Mobilgeräte optimiert.</h2>
+      <p>
+        Bitte öffne sie auf einem Laptop oder Desktop mit einem grösseren Bildschirm.
+       
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <div class="kicker">Datenanalyse</div>
+      <h1>Was macht eigentlich Watson?</h1>
+      <div class="meta">
+        <span>Christian David Frey</span>
+
+      </div>
+      <p class="lead">
+        <strong>24’317 Beiträge in einem Jahr – doch worüber schreibt das Newsportal Watson eigetlich? 
+        Diese Datenanalyse zeigt, dass obwohl einzelne Ressorts dominieren die Themenvielfalt ein anderes Bild zeichnet.</strong>
+      </p>
+    </header>
+
+    
+    
+
+    <p>
+        24’317 publizierte Beiträge innerhalb eines Jahres – das entspricht durchschnittlich rund 67 Artikeln pro Tag. 
+        Hinter dieser Zahl verbirgt sich eine klare Struktur: Nicht alle Ressorts sind gleich stark vertreten, nicht alle Themen gleich präsent. 
+        Ein Blick auf die Verteilung der Artikel über die Ressorts hinweg zeigt, wo die redaktionellen Schwerpunkte liegen.
+        Bereiche wie internationale und nationale Nachrichten dominieren deutlich, während kleinere Ressorts vergleichsweise selten bespielt werden. 
+        Das ist kein Zufall – sondern Ausdruck strategischer Prioritäten.
+        Einzelne Ressorts prägen damit das Gesamtbild dieses Nachrichtenportals. In den Bereichen Sport, Schweiz und International wurden im 
+        Jahr 2025 knapp 80 Prozent aller Artikel publiziert.
+        
+      </p>
+
+
+
+
+    <div style="margin-top:40px;"></div>
+    <div class="panel">
+        <iframe 
+          id="ressorts-frame"
+          class="embed"
+          src="ressorts.html"
+          title="Balkenplot: Beiträge pro Ressort">
+        </iframe>
+      
+        <div class="caption">
+          Abbildung 1: Anzahl Beiträge pro Ressort (watson.ch · 2025 · Total = 24’317)
+        </div>
+      </div>
+
+      <div style="margin-top:40px;">
+      
+
+
+
+    <h2 class="section-title">Die fünf dominierenden Themen</h2>
+    <p>
+        Doch die Aufteilung nach Ressorts kann zu vorschnellen Schlüssen führen. Es lohnt sich daher, genauer hinzuschauen.
+        Besonders spannend wird es, wenn man untersucht, welche inhaltlichen Muster sich hinter den Artikeln verbergen.
+        In der folgenden Visualisierung steht jeder Punkt für einen einzelnen Beitrag. Je näher zwei Punkte beieinanderliegen, 
+        desto ähnlicher sind sich ihre Inhalte.
+    </p>
+  </div>
+
+  <div style="margin-top:40px;"></div>
+  <!-- FULL-WIDTH Plot (ohne Rahmen) -->
+  <section class="fullwidth">
+
+    <!-- Meldung bei zu kleinem Fenster -->
+    <div class="plot-too-small">
+      <h3>Kannst du dein Fenster etwas grösser machen?</h3>
+      <p>Die Abbildung hier braucht etwas mehr Platz.</p>
+    </div>
+  
+    <!-- Eigentliche Visualisierung -->
+    <div class="viz-wrap" id="topics-viz">
+        <iframe id="topics-frame" class="fullwidth-embed"
+        src="topics.html"
+        title="3D Punktewolke: Top-Themen"></iframe>
+  
+      <div class="scroll-catcher" aria-hidden="true"></div>
+    </div>
+  
+  </section>
+
+  <div class="wrap">
+    <div class="caption">Abbildung 2: Interaktive 3D-Punktewolke</div>
+
+    <div style="margin-top:40px;"></div>
+    <p>
+    Farbig hervorgehoben sind die fünf grössten Themenfelder des Jahres. Dabei handelt es sich um Gruppen von Artikeln, die aufgrund ihrer inhaltlichen Ähnlichkeit zusammengefasst wurden und gemessen an ihrer Anzahl die fünf grössten Cluster bilden.
+    In der internationalen Politik steht vor allem Donald Trump im Zentrum der Berichterstattung. Im Sport prägt der internationale Fussball, wenig überraschend, das Bild. Das Themenfeld „Gesellschaft & Lifestyle“ umfasst insgesamt die meisten Beiträge, obwohl das Ressort „Leben“ gemäss der formalen Ressortverteilung nicht einmal zu den Top fünf gehört. Inhaltliche Muster sind somit nicht deckungsgleich mit Ressortkategorien.
+    Darüber hinaus zeigt sich, dass auch Berichte über Unfälle, Straftaten und wirtschaftliche Entwicklungen zentrale Themenbereiche darstellen. Auffällig ist zudem, dass sich die fünf grössten Themenfelder in ihrer Gesamtzahl deutlich weniger unterscheiden als zuvor die Ressorts.
+    Die interaktive Grafik in Abbildung 2 ermöglicht es, einzelne Muster und Artikel genauer zu erkunden. Passen die gewählten Bezeichnungen für die Themenfelder oder gäbe es treffendere Begriffe?
+
+            
+
+
+    
+    </p>
+
+
+
+    <p>
+        Die Analyse zeigt: Watson publiziert breiter und ausgewogener, als es auf den ersten Blick scheint. Gliedert man die Ressorts weiter auf und betrachtet sie inhaltlich, lässt sich die Themenvielfalt dieses Newsportals deutlich besser abbilden.
+        Die Daten liefern dabei keine Bewertung, sondern machen Muster sichtbar. Und diese Muster erzählen viel darüber, was im Jahr 2025 die öffentliche Aufmerksamkeit prägte.
+    
+    </p>
+
+
+
+    <div style="margin-top:120px;"></div>
+
+    <section class="methods" aria-label="Methoden-Info">
+        <h3>Methoden (Kurzüberblick)</h3>
+        <ul>
+          <li>Web Scraping von <a href="https://www.watson.ch" target="_blank" rel="noopener">watson.ch</a></li>
+          <li>Textvorverarbeitung: Kleinschreibung, Stopwords (DE), Stemming</li>
+          <li>Vektorisierung: TF-IDF (Document-Feature-Matrix)</li>
+          <li>Dimensionsreduktion: SVD (Truncated SVD via irlba)</li>
+          <li>Einbettung für Visualisierung: UMAP (3D)</li>
+          <li>Clustering: spherical k-means (skmeans)</li>
+          <li>Topic-Beschreibung: Keyness (Likelihood Ratio)</li>
+        </ul>
+        
+      </section>
+
+      <footer>
+        Autor: Christian David Frey 
+        <a href="mailto:ch.frey@live.de">ch.frey@live.de</a>
+      
+        <span class="social">
+          <a href="https://www.instagram.com/dave.iniert" 
+             target="_blank" 
+             rel="noopener"
+             aria-label="Instagram Profil">
+             
+            <!-- Instagram SVG Icon -->
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 2A3.75 3.75 0 0 0 4 7.75v8.5A3.75 3.75 0 0 0 7.75 20h8.5A3.75 3.75 0 0 0 20 16.25v-8.5A3.75 3.75 0 0 0 16.25 4h-8.5zm4.25 3.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 0 1 12 7.5zm0 2A2.5 2.5 0 1 0 14.5 12 2.5 2.5 0 0 0 12 9.5zm4.75-3a1 1 0 1 1-1 1 1 1 0 0 1 1-1z"/>
+            </svg>
+      
+          </a>
+        </span>
+      </footer>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const frame = document.getElementById("topics-frame");
+      if (!frame) return;
+    
+      // 1) Nachricht vom iframe empfangen und Seite scrollen
+      window.addEventListener("message", (event) => {
+        if (!event.data || event.data.type !== "plotWheel") return;
+    
+        // optional: nur Nachrichten aus deinem iframe zulassen (wenn gleiche Origin)
+        // if (event.source !== frame.contentWindow) return;
+    
+        window.scrollBy({ top: event.data.deltaY, left: 0, behavior: "auto" });
+      });
+    
+      // 2) fade-in nach load
+      document.querySelectorAll("iframe").forEach(f => {
+        f.addEventListener("load", () => f.classList.add("loaded"));
+      });
+    });
+    </script>
+</body>
+</html>
